@@ -1,5 +1,4 @@
 const { BigQuery } = require("@google-cloud/bigquery");
-const path = require("path");
 
 async function main() {
   const projectId = "eks-to-bq-poc";
@@ -8,7 +7,6 @@ async function main() {
 
   const bigquery = new BigQuery({
     projectId,
-    // keyFilename: path.join(__dirname, "eks-to-bq-poc-ee4056a6423a.json") ,
   });
 
   const query = `SELECT * FROM \`${projectId}.${datasetId}.${tableId}\` LIMIT 10`;

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: example-sa
-  namespace: example-ns
-  annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::543157227934:role/bigquery-workload-identity-role"

@@ -1,24 +1,7 @@
-provider "aws" {
-  region = "ap-northeast-1"
-}
-
 provider "google" {
-  project = "eks-to-bq-poc"
-  region  = "asia-northeast1"
-  zone    = "asia-northeast1-a"
-}
-
-variable "ksa_name" {
-  default = "example-ns:example-sa"
-}
-
-variable "project_number" {
-  default = "261550595085"
-}
-
-locals {
-  aws_account_id              = "543157227934"
-  eks_cluster_oidc_issuer_url = "https://oidc.eks.ap-northeast-1.amazonaws.com/id/6CFC05600AE1CAE83C888DA3F179B813"
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
 }
 
 resource "google_service_account" "bigquery_sa" {
@@ -44,12 +27,12 @@ resource "google_iam_workload_identity_pool" "aws_pool" {
 }
 
 resource "google_iam_workload_identity_pool_provider" "aws_provider" {
-  workload_identity_pool_provider_id = "aws-provider1"
+  workload_identity_pool_provider_id = "aws-provider"
   workload_identity_pool_id          = google_iam_workload_identity_pool.aws_pool.workload_identity_pool_id
   display_name                       = "AWS Provider"
 
   oidc {
-    issuer_uri        = local.eks_cluster_oidc_issuer_url
+    issuer_uri        = var.eks_cluster_oidc_issuer_url
     allowed_audiences = ["sts.amazonaws.com"]
   }
   attribute_mapping = {
@@ -62,39 +45,4 @@ resource "google_service_account_iam_binding" "service-account-iam" {
   service_account_id = google_service_account.bigquery_sa.name
   role               = "roles/iam.workloadIdentityUser"
   members            = ["principalSet://iam.googleapis.com/projects/${var.project_number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.aws_pool.workload_identity_pool_id}/attribute.ksa_name/${var.ksa_name}"]
-}
-
-data "aws_iam_policy_document" "assume_role_with_oidc" {
-  statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
-
-    principals {
-      type        = "Federated"
-      identifiers = ["arn:aws:iam::${local.aws_account_id}:oidc-provider/${local.eks_cluster_oidc_issuer_url}"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${local.eks_cluster_oidc_issuer_url}:sub"
-      values   = ["system:serviceaccount:${var.ksa_name}"]
-    }
-  }
-}
-
-resource "aws_iam_role" "bigquery_workload_identity_role" {
-  name               = "bigquery-workload-identity-role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_with_oidc.json
-}
-
-resource "aws_iam_openid_connect_provider" "eks_oidc_provider" {
-  url = local.eks_cluster_oidc_issuer_url
-
-  client_id_list = [
-    "sts.amazonaws.com",
-  ]
-
-  thumbprint_list = [
-    "75e652d4d05359d11ffa3976c0dbccaf60d2b28d",
-  ]
 }

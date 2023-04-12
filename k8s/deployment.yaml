@@ -16,9 +16,9 @@ spec:
       serviceAccountName: example-sa
       containers:
       - name: bigquery-sample-app
-        image: kenfdev/bigquery-sample-app
+        image: kenfdev/bigquery-sample-app # TODO: change to your own image
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: "config-aws-eks-provider.json"
-        imagePullPolicy: Always
+        imagePullPolicy: Always # for testing purposes
 
