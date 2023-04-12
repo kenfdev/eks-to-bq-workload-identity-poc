@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bigquery-sample-app
+  namespace: example-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bigquery-sample-app
+  template:
+    metadata:
+      labels:
+        app: bigquery-sample-app
+    spec:
+      serviceAccountName: example-sa
+      containers:
+      - name: bigquery-sample-app
+        image: kenfdev/bigquery-sample-app
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "config-aws-eks-provider.json"
+        imagePullPolicy: Always
+
